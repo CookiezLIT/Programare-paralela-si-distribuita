@@ -65,7 +65,6 @@ int main(){
                 if (i < FILE1_SIZE){
                     fin >> a1[i];
                 }
-
                 if (i < FILE2_SIZE) {
                     fin2 >> b1[i];
                 }
@@ -82,13 +81,6 @@ int main(){
                 MPI_Send(b1+(id_current_process-1) * buffer_size,buffer_size,MPI_INT,id_current_process,0,MPI_COMM_WORLD);
                 id_current_process += 1;
             }
-            cout << "READ DATA:" << endl;
-            for(int i=0;i<FILE1_SIZE;i++)
-                cout << a1[i] << " ";
-            cout << endl;
-            for (int i=0;i<FILE2_SIZE;i++)
-                cout << b1[i] << " ";
-            cout << endl;
             fin.close();
             fin2.close();
         }
@@ -100,46 +92,43 @@ int main(){
         for(int i=1;i<world_size;i++){
             MPI_Recv(c+(i-1)*buffer_size,buffer_size,MPI_INT,i,2,MPI_COMM_WORLD,&status);
         }
+        // Recieve carry from the last processor
+        int aux = 0;
+        MPI_Recv(&aux,1,MPI_INT,world_size-1,1,MPI_COMM_WORLD,&status);
+        c[RESULT_SIZE-1] += aux;
         for (int i=0; i<RESULT_SIZE;i++)
             cout << c[i] << " ";
     }
     else if (world_rank < world_size){
-        int* a = new int(buffer_size);
-        int* b = new int(buffer_size);
-        int* c = new int(buffer_size);
+        int a[buffer_size];
+        int b[buffer_size];
+        int c[buffer_size];
+//        int* b = new int(buffer_size);
+//        int* c = new int(buffer_size);
         int carry = 0;
-        cout << "PROCESSOR " << world_rank << " WAITS FOR DATA" << endl;
         // processor 1 does not recieve any carry from the previous processor; tag is 1
 
         MPI_Recv(a,buffer_size,MPI_INT,0,0,MPI_COMM_WORLD, &status);
         MPI_Recv(b,buffer_size,MPI_INT,0,0,MPI_COMM_WORLD, &status);
-        cout << "PROCESSOR" << world_rank << " RECEIVED THE DATA FROM 0" << endl;
-        cout << endl;
         if (world_rank != 1){
             MPI_Recv(&carry, 1, MPI_INT, world_rank-1,1,MPI_COMM_WORLD, &status);
-        }
-        cout << "NUMBER RECIEVED:" << endl;
-        for (int i=0;i<buffer_size;i++){
-            cout << a[i] << " ";
-        }
-        cout << endl;
-        for (int i=0;i<buffer_size;i++){
-            cout << b[i] << " ";
         }
         //add the numbers
         for (int i=0;i<buffer_size;i++){
             c[i] = (a[i] + b[i] + carry) % 10;
             if (a[i] + b[i] + carry >= 10 ){
-                cout << "AT i:" << i << "SUM GOT OVER: " << a[i] + b[i] + carry << "VALUES: " << a[i] << " " << b[i] << " " << carry << endl;
-                cout << "NEW SUM:" << " " << (a[i] + b[i] + carry) % 10 << endl;
                 carry = 1;
             }
             else carry = 0;
         }
 
-        //last processor does not send carry
+        //last processor sends the carry to the first processor
         if (world_rank != world_size - 1){
             MPI_Send(&carry,1,MPI_INT,world_rank + 1,1,MPI_COMM_WORLD);
+        }
+        else
+        {
+            MPI_Send(&carry,1,MPI_INT,0,1,MPI_COMM_WORLD);
         }
         //send the result to processor one with the tag 2
         MPI_Send(c,buffer_size,MPI_INT,0,2,MPI_COMM_WORLD);
