@@ -32,6 +32,8 @@ void show_result(int c[RESULT_SIZE]){
     fout.close();
 }
 
+int a1[FILE1_SIZE], b1[FILE2_SIZE];
+
 int main(){
 
     MPI_Init(NULL, NULL);
@@ -50,8 +52,8 @@ int main(){
     // processor 0 reads the n/p numbers and sends them to the other processors
     if (world_rank == 0){
 
-        int* a = new int(RESULT_SIZE);
-        int* b = new int(RESULT_SIZE);
+//        int* a = new int(RESULT_SIZE);
+//        int* b = new int(RESULT_SIZE);
         int* c = new int(RESULT_SIZE);
 
         int id_current_process = 1;
@@ -61,31 +63,34 @@ int main(){
         if (fin.is_open() and fin2.is_open()){
             for (int i =0; i<max(FILE1_SIZE,FILE2_SIZE);i++){
                 if (i < FILE1_SIZE){
-                    fin >> a[i];
+                    fin >> a1[i];
                 }
 
                 if (i < FILE2_SIZE) {
-                    fin2 >> b[i];
+                    fin2 >> b1[i];
                 }
                 // we read n/p numbers, send them to the process
                 if (i % buffer_size == 0 and i != 0){
-                    MPI_Send(a+(id_current_process-1) * buffer_size,buffer_size,MPI_INT,id_current_process,0,MPI_COMM_WORLD);
-                    MPI_Send(b+(id_current_process-1) * buffer_size,buffer_size,MPI_INT,id_current_process,0,MPI_COMM_WORLD);
+                    MPI_Send(a1+(id_current_process-1) * buffer_size,buffer_size,MPI_INT,id_current_process,0,MPI_COMM_WORLD);
+                    MPI_Send(b1+(id_current_process-1) * buffer_size,buffer_size,MPI_INT,id_current_process,0,MPI_COMM_WORLD);
                     id_current_process += 1;
                 }
             }
             // if data did not divide to the number of processors, clear the buffer for the last process
             if (id_current_process == world_size - 1){
-                MPI_Send(a+(id_current_process-1) * buffer_size,buffer_size,MPI_INT,id_current_process,0,MPI_COMM_WORLD);
-                MPI_Send(b+(id_current_process-1) * buffer_size,buffer_size,MPI_INT,id_current_process,0,MPI_COMM_WORLD);
+                MPI_Send(a1+(id_current_process-1) * buffer_size,buffer_size,MPI_INT,id_current_process,0,MPI_COMM_WORLD);
+                MPI_Send(b1+(id_current_process-1) * buffer_size,buffer_size,MPI_INT,id_current_process,0,MPI_COMM_WORLD);
                 id_current_process += 1;
             }
+            cout << "READ DATA:" << endl;
+            for(int i=0;i<FILE1_SIZE;i++)
+                cout << a1[i] << " ";
+            cout << endl;
+            for (int i=0;i<FILE2_SIZE;i++)
+                cout << b1[i] << " ";
+            cout << endl;
             fin.close();
             fin2.close();
-            for(int i=0;i<FILE2_SIZE;i++){
-                cout << "a:" << a[i] << endl;
-                cout << "b:" << b[i] << endl;
-            }
         }
         else{
             throw std::exception();
@@ -113,13 +118,23 @@ int main(){
         if (world_rank != 1){
             MPI_Recv(&carry, 1, MPI_INT, world_rank-1,1,MPI_COMM_WORLD, &status);
         }
+        cout << "NUMBER RECIEVED:" << endl;
+        for (int i=0;i<buffer_size;i++){
+            cout << a[i] << " ";
+        }
+        cout << endl;
+        for (int i=0;i<buffer_size;i++){
+            cout << b[i] << " ";
+        }
         //add the numbers
         for (int i=0;i<buffer_size;i++){
-            c[i] = a[i] + b[i] + carry;
-            if (c[i] > 9){
-                c[i] = c[i] % 10;
+            c[i] = (a[i] + b[i] + carry) % 10;
+            if (a[i] + b[i] + carry >= 10 ){
+                cout << "AT i:" << i << "SUM GOT OVER: " << a[i] + b[i] + carry << "VALUES: " << a[i] << " " << b[i] << " " << carry << endl;
+                cout << "NEW SUM:" << " " << (a[i] + b[i] + carry) % 10 << endl;
                 carry = 1;
             }
+            else carry = 0;
         }
 
         //last processor does not send carry
