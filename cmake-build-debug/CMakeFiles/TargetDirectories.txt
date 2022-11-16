@@ -1,0 +1,3 @@
+/Users/dan-luciannita/CLionProjects/TEMA_LAB3/cmake-build-debug/CMakeFiles/TEMA_LAB3.dir
+/Users/dan-luciannita/CLionProjects/TEMA_LAB3/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/dan-luciannita/CLionProjects/TEMA_LAB3/cmake-build-debug/CMakeFiles/rebuild_cache.dir
