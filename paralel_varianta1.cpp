@@ -8,13 +8,13 @@ ifstream fin2;
 ofstream fout;
 
 //declaring file names
-const string FILE1_NAME = "./data/numar1_trivial.txt";
-const string FILE2_NAME = "./data/numar2_trivial.txt";
-const string RESULT_FILE_NAME = "./data/rezultat_trivial.txt";
+const string FILE1_NAME = "./data/numar1_mare.txt";
+const string FILE2_NAME = "./data/numar2_mare.txt";
+const string RESULT_FILE_NAME = "./data/rezultat_mare.txt";
 //declaring sizes
-const int FILE1_SIZE = 18;
-const int FILE2_SIZE = 18;
-const int RESULT_SIZE = 19;
+const int FILE1_SIZE = 1000;
+const int FILE2_SIZE = 100000;
+const int RESULT_SIZE = 100001;
 
 
 void show_result(int c[RESULT_SIZE]){
@@ -26,7 +26,7 @@ void show_result(int c[RESULT_SIZE]){
         throw exception();
     }
     for (int i =0; i < RESULT_SIZE; i++){
-        cout << c[i] << " ";
+//        cout << c[i] << " ";
         fout << c[i] << " ";
     }
     fout.close();
@@ -57,7 +57,7 @@ int main(){
         int* c = new int(RESULT_SIZE);
 
         int id_current_process = 1;
-
+        cout << "PROCESSOR 0 SENT THE DATA" << endl;
         fin.open(FILE1_NAME, ios::in | ios::binary);
         fin2.open(FILE2_NAME, ios::in | ios::binary);
         if (fin.is_open() and fin2.is_open()){
@@ -96,8 +96,9 @@ int main(){
         int aux = 0;
         MPI_Recv(&aux,1,MPI_INT,world_size-1,1,MPI_COMM_WORLD,&status);
         c[RESULT_SIZE-1] += aux;
-        for (int i=0; i<RESULT_SIZE;i++)
-            cout << c[i] << " ";
+//        for (int i=0; i<RESULT_SIZE;i++)
+//            cout << c[i] << " ";
+        show_result(c);
     }
     else if (world_rank < world_size){
         int a[buffer_size];
