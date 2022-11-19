@@ -1,20 +1,21 @@
 #include <fstream>
 #include <iostream>
 #include <mpi.h>
+#include <chrono>
 using namespace std;
-
+using namespace std::chrono;
 ifstream fin;
 ifstream fin2;
 ofstream fout;
 
 //declaring file names
-const string FILE1_NAME = "./data/numar1_mare.txt";
-const string FILE2_NAME = "./data/numar2_mare.txt";
-const string RESULT_FILE_NAME = "./data/rezultat_mare.txt";
+const string FILE1_NAME = "./data/numar1_mediu.txt";
+const string FILE2_NAME = "./data/numar2_mediu.txt";
+const string RESULT_FILE_NAME = "./data/rezultat_mediu.txt";
 //declaring sizes
 const int FILE1_SIZE = 1000;
-const int FILE2_SIZE = 100000;
-const int RESULT_SIZE = 100001;
+const int FILE2_SIZE = 1000;
+const int RESULT_SIZE = 1001;
 
 
 void show_result(int c[RESULT_SIZE]){
@@ -60,6 +61,7 @@ int main(){
         cout << "PROCESSOR 0 SENT THE DATA" << endl;
         fin.open(FILE1_NAME, ios::in | ios::binary);
         fin2.open(FILE2_NAME, ios::in | ios::binary);
+        auto start = chrono::high_resolution_clock::now();
         if (fin.is_open() and fin2.is_open()){
             for (int i =0; i<max(FILE1_SIZE,FILE2_SIZE);i++){
                 if (i < FILE1_SIZE){
@@ -87,6 +89,7 @@ int main(){
         else{
             throw std::exception();
         }
+
         cout << "PROCESSOR 0 SENT THE DATA" << endl;
         // Recieve from the other processes and print the array
         for(int i=1;i<world_size;i++){
@@ -96,6 +99,9 @@ int main(){
         int aux = 0;
         MPI_Recv(&aux,1,MPI_INT,world_size-1,1,MPI_COMM_WORLD,&status);
         c[RESULT_SIZE-1] += aux;
+        auto end = chrono::high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(end - start);
+        cout << duration.count() << endl;
 //        for (int i=0; i<RESULT_SIZE;i++)
 //            cout << c[i] << " ";
         show_result(c);

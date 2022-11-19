@@ -2,15 +2,16 @@
 #include <fstream>
 #include <mpi.h>
 #include <algorithm> // for max
+#include <chrono>
 using namespace std;
-
+using namespace std::chrono;
 ifstream fin;
 ofstream fout;
 
 //declaring file names
 const string FILE1_NAME = "./data/numar1_mediu.txt";
 const string FILE2_NAME = "./data/numar2_mediu.txt";
-const string RESULT_FILE_NAME = "./data/rezultat_mare.txt";
+const string RESULT_FILE_NAME = "./data/rezultat_mediu.txt";
 
 //declaring sizes
 const int FILE1_SIZE = 1000;
@@ -82,7 +83,7 @@ int main(){
     b = new int(buffer_size);
     c = new int(total_size);
     c2 = new int(total_size);
-
+    auto start = chrono::high_resolution_clock::now();
     MPI_Scatter(a1,buffer_size,MPI_INT,a,buffer_size,MPI_INT,0,MPI_COMM_WORLD);
     MPI_Scatter(b1,buffer_size,MPI_INT,b,buffer_size,MPI_INT,0,MPI_COMM_WORLD);
 
@@ -109,11 +110,18 @@ int main(){
 
 
     if (world_rank == 0){
+        auto end = chrono::high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(end - start);
+        cout << duration.count() << endl;
         MPI_Recv(&carry,1,MPI_INT,world_size-1,3,MPI_COMM_WORLD,&mpiStatus);
         c[total_size-zeros_to_add] += carry;
         cout << endl << total_size-zeros_to_add << endl;
         for (int i=0;i<total_size;i++)
-            cout << c[i] << " ";
+            fout << c[i] << " ";
     }
+    delete a;
+    delete b;
+    delete c;
+    delete c2;
     MPI_Finalize();
 }

@@ -4,19 +4,20 @@
 #include <utility> // for the swap function
 #include <cstdlib> // for random
 #include <time.h> // for setting the random seed
+#include <chrono>
 using namespace std;
-
+using namespace std::chrono;
 ifstream fin;
 ofstream fout;
 
 //declaring file names
-const string FILE1_NAME = "./data/numar1_trivial.txt";
-const string FILE2_NAME = "./data/numar2_trivial.txt";
-const string RESULT_FILE_NAME = "./data/rezultat_trivial.txt";
+const string FILE1_NAME = "./data/numar1_mare.txt";
+const string FILE2_NAME = "./data/numar2_mare.txt";
+const string RESULT_FILE_NAME = "./data/rezultat_mare.txt";
 //declaring sizes
-const int FILE1_SIZE = 18;
-const int FILE2_SIZE = 18;
-const int RESULT_SIZE = 19;
+const int FILE1_SIZE = 100;
+const int FILE2_SIZE = 100000;
+const int RESULT_SIZE = 100001;
 
 void generate_random_numbers(string file, int size){
     /*
@@ -91,7 +92,7 @@ void show_result(int c[RESULT_SIZE]){
         throw exception();
     }
     for (int i =0; i < RESULT_SIZE; i++){
-        cout << c[i] << " ";
+        //cout << c[i] << " ";
         fout << c[i] << " ";
     }
     fout.close();
@@ -100,7 +101,11 @@ int a[FILE1_SIZE], b[FILE2_SIZE], c[RESULT_SIZE];
 
 int main(){
     read_numbers(FILE1_NAME,FILE2_NAME,a,b);
+    auto start = chrono::high_resolution_clock::now();
     add_numbers(a,b,c);
+    auto end = chrono::high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(end - start);
+    cout << duration.count() << endl;
     show_result(c);
     //generate_random_numbers("./data/numar2_mare.txt",100000);
     return 0;
